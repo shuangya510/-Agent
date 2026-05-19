@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>全自动合规审计与政策影响分析 Agent</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="page-shell">
+    <header class="hero card">
+      <div class="hero-copy">
+        <p class="eyebrow">金融 / 法律 / 强监管行业 · 中文单页演示</p>
+        <h1>全自动合规审计与政策影响分析 Agent</h1>
+        <p class="hero-text">
+          一个面向法务与合规团队的多 Agent 原型：自动拆解监管政策、比对存量业务条款、执行长链推理、生成整改建议，并对整改后的残余风险进行再评估。
+        </p>
+      </div>
+      <div class="hero-stats">
+        <article>
+          <span>专职 Agent</span>
+          <strong>4</strong>
+          <small>解析 / 匹配 / 推理 / 修正</small>
+        </article>
+        <article>
+          <span>推理链路</span>
+          <strong>5 步</strong>
+          <small>政策原意 → 条款冲突 → 业务影响 → 风险后果 → 风险分级</small>
+        </article>
+        <article>
+          <span>适用场景</span>
+          <strong>强监管</strong>
+          <small>合同库、产品条款、内部制度、监管新规</small>
+        </article>
+      </div>
+    </header>
+
+    <section class="pain-grid">
+      <article class="card pain-card">
+        <h2>核心痛点</h2>
+        <ul>
+          <li>政策更新频繁，人工逐条解读与比对耗时极高。</li>
+          <li>合同、产品条款、内控制度分散，容易遗漏关键冲突点。</li>
+          <li>影响评估往往依赖资深合规官经验，难以规模化复用。</li>
+          <li>整改建议与后续复核脱节，无法形成真正闭环。</li>
+        </ul>
+      </article>
+      <article class="card pain-card">
+        <h2>本 Demo 展示的能力</h2>
+        <ul>
+          <li>自动拆解监管政策为结构化强制性条款图谱。</li>
+          <li>针对存量业务文本执行细粒度语义匹配与冲突标注。</li>
+          <li>输出带有依据、置信度、风险等级的长链推理结果。</li>
+          <li>自动生成整改建议并对整改后文本再次评估。</li>
+        </ul>
+      </article>
+    </section>
+
+    <section class="workbench-grid">
+      <section class="card control-panel">
+        <div class="panel-header">
+          <div>
+            <p class="section-tag">输入工作台</p>
+            <h2>政策与业务文本</h2>
+          </div>
+          <div class="button-row compact">
+            <button id="loadSampleButton" class="secondary">载入内置样本</button>
+            <button id="runButton" class="primary">开始合规审计</button>
+            <button id="exportButton" class="secondary">导出报告</button>
+          </div>
+        </div>
+
+        <div class="field-grid two-col">
+          <label class="field">
+            <span>选择政策样本</span>
+            <select id="policySelect"></select>
+          </label>
+          <label class="field">
+            <span>选择业务文档组</span>
+            <select id="docSelect">
+              <option value="default">默认业务文档组</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="field-grid two-col upload-grid">
+          <label class="field">
+            <span>上传政策文件（.txt / .json）</span>
+            <input id="policyFileInput" type="file" accept=".txt,.json">
+          </label>
+          <label class="field">
+            <span>上传业务文档（.txt / .json）</span>
+            <input id="docFileInput" type="file" accept=".txt,.json">
+          </label>
+        </div>
+
+        <div class="field-grid two-col textareas">
+          <label class="field">
+            <span>自定义政策文本</span>
+            <textarea id="policyTextarea" placeholder="可直接粘贴新的监管政策文本；留空则使用上方样本或上传内容。"></textarea>
+          </label>
+          <label class="field">
+            <span>自定义业务文本</span>
+            <textarea id="docsTextarea" placeholder="可粘贴合同、产品条款、内部制度等多段文本；建议每段用空行分隔。"></textarea>
+          </label>
+        </div>
+
+        <div class="tip-row">
+          <span id="inputHint">默认将使用内置样本，演示端到端的“解析-匹配-推理-整改-再推理”闭环。</span>
+        </div>
+      </section>
+
+      <section class="card summary-panel">
+        <p class="section-tag">运行总览</p>
+        <h2>风险总览仪表板</h2>
+        <div class="summary-stats">
+          <article>
+            <span>政策条款</span>
+            <strong id="statClauses">0</strong>
+          </article>
+          <article>
+            <span>命中冲突</span>
+            <strong id="statConflicts">0</strong>
+          </article>
+          <article>
+            <span>高风险项</span>
+            <strong id="statHigh">0</strong>
+          </article>
+          <article>
+            <span>平均置信度</span>
+            <strong id="statConfidence">0%</strong>
+          </article>
+        </div>
+        <div id="summaryNarrative" class="summary-narrative">
+          点击“开始合规审计”后，这里会生成一段适合汇报的摘要。
+        </div>
+      </section>
+    </section>
+
+    <section class="card pipeline-panel">
+      <div class="panel-header">
+        <div>
+          <p class="section-tag">多 Agent 编排</p>
+          <h2>执行流程</h2>
+        </div>
+        <span id="pipelineStatus" class="status-badge idle">待运行</span>
+      </div>
+      <div class="agent-grid">
+        <article class="agent-card" id="agentCardA">
+          <div class="agent-head">
+            <span class="agent-name">Agent A</span>
+            <span class="agent-state" id="agentStateA">待运行</span>
+          </div>
+          <h3>政策采集与语义拆解</h3>
+          <p id="agentSummaryA">尚未生成强制性条款图谱。</p>
+        </article>
+        <article class="agent-card" id="agentCardB">
+          <div class="agent-head">
+            <span class="agent-name">Agent B</span>
+            <span class="agent-state" id="agentStateB">待运行</span>
+          </div>
+          <h3>存量业务匹配</h3>
+          <p id="agentSummaryB">尚未执行合同、产品条款和内部制度比对。</p>
+        </article>
+        <article class="agent-card" id="agentCardC">
+          <div class="agent-head">
+            <span class="agent-name">Agent C</span>
+            <span class="agent-state" id="agentStateC">待运行</span>
+          </div>
+          <h3>影响推理与风险分级</h3>
+          <p id="agentSummaryC">尚未生成带置信度的长链推理结果。</p>
+        </article>
+        <article class="agent-card" id="agentCardD">
+          <div class="agent-head">
+            <span class="agent-name">Agent D</span>
+            <span class="agent-state" id="agentStateD">待运行</span>
+          </div>
+          <h3>整改方案生成与再评估</h3>
+          <p id="agentSummaryD">尚未形成整改闭环。</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="results-grid">
+      <section class="card results-panel">
+        <div class="panel-header">
+          <div>
+            <p class="section-tag">Agent A 输出</p>
+            <h2>强制性条款图谱</h2>
+          </div>
+          <span class="mini-badge" id="clauseCountBadge">0 条</span>
+        </div>
+        <div id="clauseGraph" class="stack-list empty-state">运行后将在这里展示结构化条款图谱。</div>
+      </section>
+
+      <section class="card results-panel">
+        <div class="panel-header">
+          <div>
+            <p class="section-tag">Agent B 输出</p>
+            <h2>冲突条款清单</h2>
+          </div>
+          <span class="mini-badge" id="conflictCountBadge">0 项</span>
+        </div>
+        <div id="conflictList" class="stack-list empty-state">运行后将在这里展示命中的冲突点与引用依据。</div>
+      </section>
+    </section>
+
+    <section class="results-grid large-gap">
+      <section class="card results-panel">
+        <div class="panel-header">
+          <div>
+            <p class="section-tag">Agent C 输出</p>
+            <h2>长链推理与风险矩阵</h2>
+          </div>
+          <span class="mini-badge">可解释评分</span>
+        </div>
+        <div id="riskMatrix" class="matrix-shell empty-state">运行后将在这里展示风险矩阵。</div>
+        <div id="reasoningList" class="reasoning-list empty-state">运行后将在这里展示“政策原意 → 冲突 → 业务影响 → 风险后果 → 风险分级”的推理链。</div>
+      </section>
+
+      <section class="card results-panel">
+        <div class="panel-header">
+          <div>
+            <p class="section-tag">Agent D 输出</p>
+            <h2>整改建议与残余风险</h2>
+          </div>
+          <span class="mini-badge">闭环再评估</span>
+        </div>
+        <div id="remediationList" class="stack-list empty-state">运行后将在这里展示整改建议与整改后的残余风险。</div>
+      </section>
+    </section>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
